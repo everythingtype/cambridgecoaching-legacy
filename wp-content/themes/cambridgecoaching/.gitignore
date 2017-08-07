@@ -1,0 +1,4 @@
+node_modules
+.ftppass
+sftpcache.json
+npm-debug.log

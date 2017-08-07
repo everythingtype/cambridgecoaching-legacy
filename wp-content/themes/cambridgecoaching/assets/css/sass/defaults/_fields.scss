@@ -1,0 +1,32 @@
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="tel"],
+input[type="range"],
+input[type="date"],
+input[type="month"],
+input[type="week"],
+input[type="time"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="color"],
+textarea {
+	border: 1px solid $grey;
+	padding: 0.25em 0.5em;
+	color: $color__text-input;
+	background: $white;
+	@include font-body;
+
+	&:focus,
+	&:hover {
+		border-color: $color__text-input-focus;
+		outline: 0;
+	}
+}
+
+textarea {
+	width: 100%;
+}

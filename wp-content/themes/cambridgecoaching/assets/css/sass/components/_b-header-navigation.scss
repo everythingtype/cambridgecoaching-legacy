@@ -1,0 +1,7 @@
+.b-header-navigation {
+	display: block;
+
+	@include mq(medium) {
+		margin-left: auto;
+	}
+}
