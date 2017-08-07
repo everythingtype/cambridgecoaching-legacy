@@ -1,18 +1,18 @@
-.b-post-date {
+.post-date {
 	@include rem(font-size, 14px);
 	color: $grey;
 }
 
-.b-post-date__published {
+.post-date__published {
 
 }
 
-.b-post-date__updated {
+.post-date__updated {
 	font-style: italic;
 }
 
-.b-post-date__link,
-.b-post-date__link:visited {
+.post-date__link,
+.post-date__link:visited {
 	color: $grey;
 	text-decoration: underline;
 

@@ -1,21 +1,21 @@
-.b-post-header {
+.post-header {
 	width: 100%;
 	margin: 0 auto $gutter;
 	padding: 0 $half-gutter;
 	max-width: $content-width;
 }
 
-.b-post-header .wp-post-image {
+.post-header .wp-post-image {
 	// Doesn't use BEM class naming, because of WP default class names
 	display: block;
 	width: 100%;
 }
 
-.b-post-header .b-post-date {
+.post-header .post-date {
 	margin-bottom: $half-gutter;
 }
 
-.b-post-header__title {
+.post-header__title {
 	margin: 0;
 	padding: 0;
 	line-height: 1.2;

@@ -1,4 +1,4 @@
-.b-site-footer {
+.site-footer {
 	clear: both;
 	width: 100%;
 	color: $white;
@@ -6,26 +6,26 @@
 	padding: $gutter $half-gutter;
 }
 
-.b-site-footer__container {
+.site-footer__container {
 	margin: 0 auto;
 	max-width: $content-width;
 }
 
-.b-site-footer__navigation {
+.site-footer__navigation {
 	width: 100%;
 	margin-bottom: $gutter;
 }
 
-.b-site-footer__misc {
+.site-footer__misc {
 	width: 100%;
 	text-align: center;
 }
 
-.b-site-footer__misc .b-social {
+.site-footer__misc .social {
 	margin-bottom: $gutter;
 }
 
-.b-sitefooter__copyright {
+.sitefooter__copyright {
 	width: 100%;
 	font-size: 14px;
 	text-align: center;

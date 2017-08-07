@@ -6,41 +6,41 @@
  */
 namespace Cambridge_Coaching\CC_Website\Theme;
 
-$article_classes = 'b-excerpt';
+$article_classes = 'excerpt';
 
 if ( has_post_thumbnail() ) {
-	$article_classes .= ' b-excerpt__with-image';
+	$article_classes .= ' excerpt--with-image';
 }
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class( $article_classes ); ?>>
 
-	<div class="b-excerpt__main">
-		<h2 class="b-excerpt__title">
+	<div class="excerpt__main">
+		<h2 class="excerpt__title">
 			<a
 				href="<?php echo esc_url( get_the_permalink() ); ?>"
 				rel="bookmark"
-				class="b-excerpt__title__link"
+				class="excerpt__title__link"
 			>
 				<?php the_title(); ?>
 			</a>
 
 			<?php if ( is_sticky() ) : ?>
-				<?php echo Helpers\get_svg_icon( 'symbol-thumbtack', array( 'class' => 'b-excerpt__sticky-icon' ) ); // WPCS: XSS OK. ?>
+				<?php echo Helpers\get_svg_icon( 'symbol-thumbtack', array( 'class' => 'excerpt__sticky-icon' ) ); // WPCS: XSS OK. ?>
 			<?php endif; ?>
 		</h2>
 
-		<div class="b-excerpt__content">
+		<div class="excerpt__content">
 			<?php the_excerpt(); ?>
 		</div>
 
-		<div class="b-excerpt__meta">
+		<div class="excerpt__meta">
 			<?php Helpers\post_date(); ?>
 		</div>
-	</div><!-- .b-excerpt__main -->
+	</div><!-- .excerpt__main -->
 
 	<?php if ( has_post_thumbnail() ) : ?>
-		<div class="b-excerpt__image">
+		<div class="excerpt__image">
 			<?php the_post_thumbnail( 'excerpt' ); ?>
 		</div>
 	<?php endif; ?>

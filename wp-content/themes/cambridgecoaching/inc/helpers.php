@@ -63,23 +63,23 @@ function post_date() {
 	ob_start();
 	?>
 
-	<div class="b-post-date">
-		<span class="b-post-date__author">
-			<span class="b-post-date__label"><?php esc_html_e( 'by ' ); ?></span>
+	<div class="post-date">
+		<span class="post-date__author">
+			<span class="post-date__label"><?php esc_html_e( 'by ' ); ?></span>
 			<a
 				href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>"
-				class="b-post-date__link"
+				class="post-date__link"
 			>
 				<?php echo get_the_author(); ?>
 			</a>
 		</span>
 
-		<span class="b-post-date__published">
-			<span class="class="b-post-date__label"><?php esc_html_e( 'on ' ); ?></span>
-			<a href="<?php echo esc_url( get_the_permalink() ); ?>" class="b-post-date__link">
+		<span class="post-date__published">
+			<span class="class="post-date__label"><?php esc_html_e( 'on ' ); ?></span>
+			<a href="<?php echo esc_url( get_the_permalink() ); ?>" class="post-date__link">
 				<time
 					datetime="<?php echo esc_attr( $published_date ); ?>"
-					class="b-post-date__date b-post-date__date--published"
+					class="post-date__date post-date__date--published"
 				>
 					<?php echo esc_html( $published_date_readable ); ?>
 				</time>
@@ -88,12 +88,12 @@ function post_date() {
 
 		<?php if ( isset( $has_been_modified ) && true === $has_been_modified ) : ?>
 			&nbsp;
-			<span class="b-post-date__updated">
-				<span class="class="b-post-date__label"><?php esc_html_e( 'Updated on: ' ); ?></span>
-				<a href="<?php echo esc_url( get_the_permalink() ); ?>" class="b-post-date__link">
+			<span class="post-date__updated">
+				<span class="class="post-date__label"><?php esc_html_e( 'Updated on: ' ); ?></span>
+				<a href="<?php echo esc_url( get_the_permalink() ); ?>" class="post-date__link">
 					<time
 						datetime="<?php echo esc_attr( $modified_date ); ?>"
-						class="b-post-date__date b-post-date__date--updated"
+						class="post-date__date post-date__date--updated"
 					>
 						<?php echo esc_html( $modified_date_readable ); ?>
 					</time>

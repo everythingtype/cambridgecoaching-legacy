@@ -7,30 +7,32 @@
 namespace Cambridge_Coaching\CC_Website\Theme;
 ?>
 
-	</div><!-- .b-page-content -->
+	</div><!-- .page-content -->
 
-	<footer class="b-site-footer" role="contentinfo">
-		<div class="b-site-footer__container">
+	<footer class="site-footer" role="contentinfo">
+		<div class="site-footer__container">
 
-			<nav id="footer-navigation" class="b-site-footer__navigation" role="navigation">
-				<?php wp_nav_menu( array(
-					'theme_location'  => 'primary',
-					'container'       => false,
-					'menu_class'      => 'b-footer-menu',
-					'depth'           => 1,
-					'walker'          => new Bem_Menu_Walker,
-				) ); ?>
-			</nav><!-- .b-footer-navigation -->
+			<nav id="footer-navigation" class="site-footer__navigation" role="navigation">
+				<?php wp_nav_menu(
+					array(
+						'theme_location'  => 'primary',
+						'container'       => false,
+						'menu_class'      => 'footer-menu',
+						'depth'           => 1,
+						'walker'          => new Bem_Menu_Walker,
+					)
+				); ?>
+			</nav><!-- .footer-navigation -->
 
-			<div class="b-site-footer__misc">
-				<div class="b-sitefooter__copyright">
+			<div class="site-footer__misc">
+				<div class="sitefooter__copyright">
 					&copy; <?php echo esc_html( date( 'Y' ) ); ?>
 				</div>
-			</div><!-- .b-site-footer__misc -->
+			</div><!-- .site-footer__misc -->
 
-		</div><!-- .b-site-footer__container -->
-	</footer><!-- .b-site-footer -->
-</div><!-- .b-site-wrapper -->
+		</div><!-- .site-footer__container -->
+	</footer><!-- .site-footer -->
+</div><!-- .site-wrapper -->
 
 <?php wp_footer(); ?>
 

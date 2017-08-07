@@ -7,9 +7,9 @@
 namespace Cambridge_Coaching\CC_Website\Theme;
 ?>
 
-<article id="post-<?php the_ID(); ?>" <?php post_class( 'b-post' ); ?>>
+<article id="post-<?php the_ID(); ?>" <?php post_class( 'post' ); ?>>
 
-	<div class="b-entry-content">
+	<div class="entry-content">
 		<?php
 		the_content();
 
@@ -22,7 +22,7 @@ namespace Cambridge_Coaching\CC_Website\Theme;
 		?>
 	</div><!-- .entry-content -->
 
-	<footer class="b-entry-footer">
+	<footer class="entry-footer">
 		<?php
 		/* translators: used between list items, there is a space after the comma */
 		$separate_meta = __( ', ', 'cambridge-coaching' );
@@ -30,7 +30,7 @@ namespace Cambridge_Coaching\CC_Website\Theme;
 		// Display categories
 		$categories_list = get_the_category_list( $separate_meta );
 		if ( ! empty( $categories_list ) ) {
-			echo '<div class="b-entry-footer__categories">';
+			echo '<div class="entry-footer__categories">';
 			esc_html_e( 'Categorized: ', 'cambridge-coaching' );
 			echo '<br>';
 			echo $categories_list; // WPCS: XSS OK.
@@ -40,7 +40,7 @@ namespace Cambridge_Coaching\CC_Website\Theme;
 		// Display tags
 		$tags_list = get_the_tag_list( '', $separate_meta );
 		if ( ! empty( $tags_list ) ) {
-			echo '<div class="b-entry-footer__tags">';
+			echo '<div class="entry-footer__tags">';
 			esc_html_e( 'Tagged: ', 'cambridge-coaching' );
 			echo '<br>';
 			echo $tags_list; // WPCS: XSS OK.
@@ -48,4 +48,4 @@ namespace Cambridge_Coaching\CC_Website\Theme;
 		}
 		?>
 	</footer><!-- .entry-footer -->
-</article><!-- .b-post -->
+</article><!-- .post -->

@@ -18,32 +18,28 @@ $use_font_loader: true;
 @import 'defaults/links';
 
 // Main layout
-@import 'components/b-site-wrapper';
-@import 'components/b-main';
+@import 'components/site-wrapper';
+@import 'components/main';
 
 // Global components
-@import 'components/b-header';
-@import 'components/b-header-navigation';
-@import 'components/b-header-menu';
-@import 'components/b-content-area';
-@import 'components/b-site-footer';
-@import 'components/b-footer-menu';
-@import 'components/b-social';
+@import 'components/header';
+@import 'components/header-navigation';
+@import 'components/header-menu';
+@import 'components/content-area';
+@import 'components/site-footer';
+@import 'components/footer-menu';
+@import 'components/social';
 
 // Posts
-@import 'components/b-post-date';
-@import 'components/b-entry-content';
+@import 'components/post-date';
+@import 'components/entry-content';
 
 // Single post/page
-@import 'components/b-post';
-@import 'components/b-page-header';
-@import 'components/b-post-header';
-@import 'components/b-entry-footer';
+@import 'components/post';
+@import 'components/page-header';
+@import 'components/post-header';
+@import 'components/entry-footer';
 
 // Archives
-@import 'components/b-excerpt';
+@import 'components/excerpt';
 @import 'components/posts-navigation';
-
-// Other components
-@import 'components/b-signup-form';
-@import 'components/ccf-form';

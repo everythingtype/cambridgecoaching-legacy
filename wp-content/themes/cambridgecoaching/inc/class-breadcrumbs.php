@@ -56,7 +56,7 @@ class Breadcrumbs {
 					$post_type_object->labels->name,
 					$post_type_archive,
 					false,
-					'breadcrumb-post-type-' . $post_type
+					'breadcrumpost-type-' . $post_type
 				);
 			}
 
@@ -82,7 +82,7 @@ class Breadcrumbs {
 					$post_type_object->labels->name,
 					$post_type_archive,
 					false,
-					'breadcrumb-post-type-' . $post_type
+					'breadcrumpost-type-' . $post_type
 				);
 			}
 

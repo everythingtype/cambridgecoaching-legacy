@@ -18,18 +18,18 @@ namespace Cambridge_Coaching\CC_Website\Theme;
 
 <body <?php body_class(); ?>>
 
-<div id="wrapper" class="b-site-wrapper">
+<div id="wrapper" class="site-wrapper">
 	<a class="skip-link screen-reader-text" href="#content"><?php esc_html_e( 'Skip to content', 'cambridge-coaching' ); ?></a>
 
-	<header class="b-header" role="banner">
-		<div class="b-header__wrapper">
+	<header class="header" role="banner">
+		<div class="header__wrapper">
 
-			<div class="b-header__logo">
+			<div class="header__logo">
 				<?php the_custom_logo(); ?>
 			</div>
 
 			<button
-				class="b-header__toggle"
+				class="header__toggle"
 				id="js-menu-toggle"
 				aria-controls="menu"
 				aria-expanded="false"
@@ -39,19 +39,21 @@ namespace Cambridge_Coaching\CC_Website\Theme;
 
 			<nav
 				id="js-header-navigation"
-				class="b-header-navigation"
+				class="header-navigation"
 				role="navigation"
 			>
-				<?php wp_nav_menu( array(
-					'theme_location'  => 'primary',
-					'menu_id'         => 'js-header-menu',
-					'container'       => false,
-					'menu_class'      => 'b-header-menu',
-					'walker'          => new Bem_Menu_Walker,
-				) ); ?>
-			</nav><!-- .b-header-navigation -->
+				<?php wp_nav_menu(
+					array(
+						'theme_location'  => 'primary',
+						'menu_id'         => 'js-header-menu',
+						'container'       => false,
+						'menu_class'      => 'header-menu',
+						'walker'          => new Bem_Menu_Walker,
+					)
+				); ?>
+			</nav><!-- .header-navigation -->
 
-		</div><!-- .b-header__wrapper -->
-	</header><!-- .b-header -->
+		</div><!-- .header__wrapper -->
+	</header><!-- .header -->
 
-	<div id="content" class="b-page-content">
+	<div id="content" class="page-content">

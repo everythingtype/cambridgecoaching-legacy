@@ -8,12 +8,12 @@ use Cambridge_Coaching\CC_Website\Theme\Helpers;
 
 get_header(); ?>
 
-	<header class="b-post-header">
-		<h1 class="b-post-header__title">
+	<header class="post-header">
+		<h1 class="post-header__title">
 			<?php single_post_title(); ?>
 		</h1>
 
-		<div class="b-post-header__meta">
+		<div class="post-header__meta">
 			<?php Helpers\post_date(); ?>
 		</div>
 
@@ -24,8 +24,8 @@ get_header(); ?>
 
 	<?php get_template_part( 'template-parts/featured-image' ); ?>
 
-	<div id="primary" class="b-content-area">
-		<main id="main" class="b-main" role="main">
+	<div id="primary" class="content-area">
+		<main id="main" class="main" role="main">
 
 			<?php
 			while ( have_posts() ) {
@@ -34,8 +34,8 @@ get_header(); ?>
 			}
 			?>
 
-		</main><!-- .b-main -->
-	</div><!-- .b-content-area -->
+		</main><!-- .main -->
+	</div><!-- .content-area -->
 
 <?php
 get_footer();

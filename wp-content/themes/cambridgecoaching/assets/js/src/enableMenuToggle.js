@@ -18,8 +18,8 @@
 		mobileToggleButton.addEventListener('click', function(event) {
 			event.preventDefault();
 
-			siteWrapper.classList.toggle('b-site-wrapper--menu-open');
-			mobileToggleButton.classList.toggle('b-header__toggle--open');
+			siteWrapper.classList.toggle('site-wrapper--menu-open');
+			mobileToggleButton.classList.toggle('header__toggle--open');
 		});
 	}
 

@@ -1,9 +1,9 @@
-.b-header-menu {
+.header-menu {
 	margin: 0;
 	padding: 0;
 }
 
-.b-header-menu__item {
+.header-menu__item {
 	display: inline;
 	position: relative;
 	@include font-title;
@@ -35,7 +35,7 @@
 	}
 }
 
-.b-header-menu__item--has-children:not(.b-header-menu__item--child) > a {
+.header-menu__item--has-children:not(.header-menu__item--child) > a {
 	@include arrow-after;
 
 	&:after {
@@ -45,20 +45,20 @@
 	}
 }
 
-.b-header-menu__item--has-children:hover a:after,
-.b-header-menu__item--has-children:focus a:after {
+.header-menu__item--has-children:hover a:after,
+.header-menu__item--has-children:focus a:after {
 	@include mq($from: medium) {
 		transform: rotate(180deg);
 	}
 }
 
-.b-header-menu__item--has-children--open a:after {
+.header-menu__item--has-children--open a:after {
 	@include mq($until: medium) {
 		transform: rotate(180deg);
 	}
 }
 
-.b-header-menu__item--has-children:not(.b-header-menu__item--child) > .b-header-menu__sub-menu {
+.header-menu__item--has-children:not(.header-menu__item--child) > .header-menu__sub-menu {
 	display: none;
 	margin: 0;
 	padding: 0;
@@ -74,14 +74,14 @@
 	}
 }
 
-.b-header-menu__item--has-children:last-child .b-header-menu__sub-menu {
+.header-menu__item--has-children:last-child .header-menu__sub-menu {
 	@include mq(medium) {
 		left: auto;
 		right: 0;
 	}
 }
 
-.b-header-menu__item--child {
+.header-menu__item--child {
 	margin: 0;
 	padding: 0;
 
@@ -98,22 +98,22 @@
 }
 
 // Second level submenus
-.b-header-menu__item--has-children.b-header-menu__item--child > .b-header-menu__sub-menu {
+.header-menu__item--has-children.header-menu__item--child > .header-menu__sub-menu {
 	margin: 0;
 	padding: 0 0 0 $quarter-gutter;
 	border: 0;
 }
 
 // Toggle submenus open on hover
-.b-header-menu__item--has-children--open > .b-header-menu__sub-menu {
+.header-menu__item--has-children--open > .header-menu__sub-menu {
 	@include mq($until: medium) {
 		display: block;
 		border-top: 1px solid $white;
 	}
 }
 
-.b-header-menu__item--has-children:focus > .b-header-menu__sub-menu,
-.b-header-menu__item--has-children:hover > .b-header-menu__sub-menu {
+.header-menu__item--has-children:focus > .header-menu__sub-menu,
+.header-menu__item--has-children:hover > .header-menu__sub-menu {
 	@include mq(medium) {
 		display: block;
 	}
