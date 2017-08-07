@@ -48,7 +48,6 @@ namespace Cambridge_Coaching\CC_Website\Theme;
 						'menu_id'         => 'js-header-menu',
 						'container'       => false,
 						'menu_class'      => 'header-menu',
-						'walker'          => new Bem_Menu_Walker,
 					)
 				); ?>
 			</nav><!-- .header-navigation -->

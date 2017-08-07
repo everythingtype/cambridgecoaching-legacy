@@ -11,7 +11,6 @@ include __DIR__ . '/inc/class-cambridge-coaching.php';
 include __DIR__ . '/inc/class-hooks.php';
 
 // Include theme components
-include __DIR__ . '/inc/class-bem-walker.php';
 include __DIR__ . '/inc/class-breadcrumbs.php';
 
 // Include other helper functions

@@ -19,7 +19,6 @@ namespace Cambridge_Coaching\CC_Website\Theme;
 						'container'       => false,
 						'menu_class'      => 'footer-menu',
 						'depth'           => 1,
-						'walker'          => new Bem_Menu_Walker,
 					)
 				); ?>
 			</nav><!-- .footer-navigation -->
