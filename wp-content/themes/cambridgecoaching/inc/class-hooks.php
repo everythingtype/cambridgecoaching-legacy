@@ -129,17 +129,9 @@ class Hooks {
 
 		// Load theme JS
 		wp_enqueue_script(
-			'cambridge-coaching-vendor-js',
-			ASSETS_DIRECTORY . 'js/dist/vendor.bundle.js',
-			array(),
-			THEME_VERSION,
-			true
-		);
-
-		wp_enqueue_script(
 			'cambridge-coaching-js',
-			ASSETS_DIRECTORY . 'js/dist/bundle.js',
-			array( 'cambridge-coaching-vendor-js' ),
+			ASSETS_DIRECTORY . 'js/dist/bundle.min.js',
+			array(),
 			THEME_VERSION,
 			true
 		);

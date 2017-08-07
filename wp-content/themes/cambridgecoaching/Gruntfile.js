@@ -72,7 +72,7 @@ module.exports = function(grunt) {
 	/**
 	 * Register default tasks
 	 */
-	grunt.registerTask('js', ['webpack']);
+	grunt.registerTask('js', ['jshint', 'concat', 'uglify']);
 	grunt.registerTask('css', ['sass', 'postcss']);
 	grunt.registerTask('default', ['svgstore', 'js', 'css']);
 };

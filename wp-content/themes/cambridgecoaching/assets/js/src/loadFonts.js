@@ -3,14 +3,12 @@
  *
  * Replace this with the actual fonts.
  */
-import FontFaceObserver from 'fontfaceobserver';
+(function(window) {
 
-function loadFonts() {
-	const sourceSansObserver = new FontFaceObserver('Source Sans Pro');
+	var sourceSansObserver = new FontFaceObserver('Source Sans Pro');
 
-	sourceSansObserver.load().then(() => {
+	sourceSansObserver.load().then(function() {
 		document.documentElement.classList.add('fonts-loaded');
 	});
-}
 
-export default loadFonts;
+})(this);
