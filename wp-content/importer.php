@@ -185,10 +185,10 @@ function create_post( $data ) {
 	$old_id            = isset( $data['id'] ) ? $data['id'] : null; // set
 	$keywords          = isset( $data['keywords'] ) ? $data['keywords'] : null; // maybe?
 	$meta_description  = isset( $data['meta_description'] ) ? $data['meta_description'] : null;
-	$post_body         = isset( $data['post_body'] ) ? $data['post_body'] : null;
+	$post_body         = isset( $data['post_body'] ) ? $data['post_body'] : null; // set
 	$publish_date      = isset( $data['publish_date'] ) ? $data['publish_date'] : null;
 	$slug              = isset( $data['slug'] ) ? $data['slug'] : null; // set
-	$topic_ids         = isset( $data['topic_ids'] ) ? $data['topic_ids'] : null;
+	$topic_ids         = isset( $data['topic_ids'] ) ? $data['topic_ids'] : null; // set
 	$ctas              = isset( $data['ctas'] ) ? $data['ctas'] : null;
 
 	// Get the matching author ID, or create the author if it doesn't exist
@@ -222,17 +222,23 @@ function create_post( $data ) {
 	}
 
 	// TODO Scan through the body for CTAs, and replace them with the "full_html" data from the "ctas" object
+	$updated_post_content = $post_body;
 
 	// TODO Scan through the body for IMG tags, download the images, and replace the src attributes
 
 	// Create the post
-	\WP_CLI::log( 'Title: ' . $title );
+	\WP_CLI::log( 'Title: ' . $title . ' by ' . $author_email );
+
+	// Convert the date - API has time since epoch in milliseconds for some reason, and adjust the time zone
+	$publish_date = absint( $publish_date ) / 1000;
+	$publish_date = $publish_date - (60 * 60 * 4); // subtract 4 hours
+	$publish_date = date( 'Y-m-d H:i:s', $publish_date );
 
 	$post_id = wp_insert_post(
 		array(
 			'post_author'    => $user_id,
-			'post_date'      => false, // ?
-			'post_content'   => $post_body,
+			'post_date'      => $publish_date,
+			'post_content'   => $updated_post_content,
 			'post_title'     => $title,
 			'post_status'    => 'publish',
 			'comment_status' => 'open',
@@ -244,8 +250,12 @@ function create_post( $data ) {
 				'old_post_id'           => $old_id,
 				'_yoast_wpseo_metadesc' => $meta_description,
 			),
-		)
+		), true
 	);
+
+	if ( is_wp_error( $post_id ) ) {
+		\WP_CLI::warning( $post_id->get_error_message() );
+	}
 
 	// Create the 301 redirect, if necessary?
 }
@@ -381,6 +391,9 @@ foreach ( $args as $arg ) {
 		$blog_post_id = (int) substr( $arg, strlen( 'id=' ) );
 	}
 }
+
+// Default for offset
+$offset = isset( $offset ) ? $offset : 0;
 
 // Run the script - either just a single post, if the "id" argument was
 // set, or everything
