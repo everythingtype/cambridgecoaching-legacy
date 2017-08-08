@@ -1,11 +1,11 @@
 {
-    "key": "group_5988d4ff918fa",
-    "title": "Test Field group",
+    "key": "group_598a2520cd1c2",
+    "title": "Blog Posts",
     "fields": [
         {
-            "key": "field_5988d548811c9",
-            "label": "test",
-            "name": "test",
+            "key": "field_598a26352c2a4",
+            "label": "Old Hubspot URL",
+            "name": "old_url",
             "type": "text",
             "instructions": "",
             "required": 0,
@@ -22,9 +22,28 @@
             "maxlength": ""
         },
         {
-            "key": "field_5988d680f8f09",
-            "label": "test2",
-            "name": "test2",
+            "key": "field_598a26422c2a5",
+            "label": "Old Hubspot Analytics Page ID",
+            "name": "old_analytics_page_id",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "placeholder": "",
+            "prepend": "",
+            "append": "",
+            "maxlength": ""
+        },
+        {
+            "key": "field_598a26522c2a6",
+            "label": "Old Hubspot Post ID",
+            "name": "old_post_idold_post_id",
             "type": "text",
             "instructions": "",
             "required": 0,
@@ -58,5 +77,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1502140093
+    "modified": 1502225774
 }
