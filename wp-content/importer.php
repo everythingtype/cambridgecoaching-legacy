@@ -15,9 +15,10 @@ namespace Cambridge_Coaching\CC_Website\Hubspot_Script;
  * or if we're importing a single post by ID:
  * https://api.hubapi.com/content/api/v2/blog-posts/3716104219?hapikey=a799f7ac-490c-4912-987a-5612b50d7482
  */
-define( 'BASE_URL', 'https://api.hubapi.com/content/api/v2/blog-posts' );   // Hubspot Blog API endpoint
-define( 'HAPI_KEY', 'a799f7ac-490c-4912-987a-5612b50d7482' );               // API key specific for the blog
-define( 'LIMIT', 5 );                                                       // low limit to avoid any issues
+define( 'BLOG_ENDPOINT_URL',   'https://api.hubapi.com/content/api/v2/blog-posts/' ); // Hubspot Blog API endpoint
+define( 'TOPICS_ENDPOINT_URL', 'https://api.hubapi.com/blogs/v3/topics/' );           // Hubspot Topics API endpoint
+define( 'HAPI_KEY',            'a799f7ac-490c-4912-987a-5612b50d7482' );              // API key specific for the blog
+define( 'LIMIT',               5 );                                                   // low limit to avoid any issues
 
 /**
  * Downloads an image and adds it to the Media Library.
@@ -100,6 +101,68 @@ function create_301_redirect( $data, $post_id ) {
 }
 
 /**
+ * Looks up the Topic ID with Hubspot's API, and maps this to WordPress's categories.
+ *
+ * If a matching category doesn't already exist, it will create one.
+ *
+ * @param int $topic_id  Hubspot topic ID.
+ *
+ * @return int           WordPress Category ID.
+ */
+function get_or_create_category_by_topic_id( $topic_id ) {
+
+	// Example API URL:
+	// https://api.hubapi.com/blogs/v3/topics/349001328?hapikey=demo
+
+	// Build the URL:
+	$endpoint_url = trailingslashit( TOPICS_ENDPOINT_URL ) . $topic_id;
+	$full_url = add_query_arg( 'hapikey', HAPI_KEY, $endpoint_url );
+
+	$response = wp_safe_remote_get( $full_url );
+
+	// Use the response if it's good
+	if ( ! is_wp_error( $response ) ) {
+		$data = json_decode( $response['body'], true );
+
+		if ( ! empty( $data ) ) {
+			$description = $data['description'];
+			$name        = $data['name'];
+			$slug        = $data['slug'];
+			$old_id      = $data['id'];
+
+			$category = get_category_by_slug( $slug );
+
+			// Get the category ID if it already exists, if not then make it
+			if ( $category instanceof \WP_Term ) {
+				$category_id = $category->term_id;
+			} else {
+				$category_id = wp_insert_category(
+					array(
+						'taxonomy'             => 'category',
+						'cat_name'             => $name,
+						'category_description' => $description,
+						'category_nicename'    => $slug,
+					)
+				);
+
+				add_term_meta( $category_id, 'old_hubspot_topic_id', $old_id, true );
+			}
+
+			return $category_id;
+
+		} else {
+			\WP_CLI::warning( 'Error trying to parse JSON from this URL: ' . $full_url );
+			return false;
+		}
+
+	} else {
+		\WP_CLI::warning( 'Error trying to get data from this URL: ' . $full_url );
+		\WP_CLI::warning( $response->get_error_message() );
+		return false;
+	} // End if().
+}
+
+/**
  * Creates a post with the provided JSON data.
  *
  * @param  Array         $data  Array of the JSON data for the post.
@@ -112,36 +175,79 @@ function create_post( $data ) {
 	// TODO: do we need analytics page ID? How to look up category IDs?
 	// Are keywords used? How are Topic IDs used (called "Tags" on the blog)?
 
-	$title             = isset( $data['html_title'] ) ? $data['html_title'] : null;
-	$old_url           = isset( $data['absolute_url'] ) ? $data['absolute_url'] : null;
-	$analytics_page_id = isset( $data['analytics_page_id'] ) ? $data['analytics_page_id'] : null; // maybe?
-	$author_email      = isset( $data['author_email'] ) ? $data['author_email'] : null;
+	$title             = isset( $data['html_title'] ) ? $data['html_title'] : null; // set
+	$old_url           = isset( $data['absolute_url'] ) ? $data['absolute_url'] : null; // set
+	$analytics_page_id = isset( $data['analytics_page_id'] ) ? $data['analytics_page_id'] : null; // maybe? set
+	$author_email      = isset( $data['author_email'] ) ? $data['author_email'] : null; // set
+	$author_name       = isset( $data['author_name'] ) ? $data['author_name'] : null; // set
+	$blog_author       = isset( $data['blog_author']['display_name'] ) ? $data['blog_author']['display_name'] : null;
 	$category_id       = isset( $data['category_id'] ) ? $data['category_id'] : null;
-	$created_time      = isset( $data['created_time'] ) ? $data['created_time'] : null; // maybe?
-	$old_id            = isset( $data['id'] ) ? $data['id'] : null;
+	$old_id            = isset( $data['id'] ) ? $data['id'] : null; // set
 	$keywords          = isset( $data['keywords'] ) ? $data['keywords'] : null; // maybe?
 	$meta_description  = isset( $data['meta_description'] ) ? $data['meta_description'] : null;
 	$post_body         = isset( $data['post_body'] ) ? $data['post_body'] : null;
 	$publish_date      = isset( $data['publish_date'] ) ? $data['publish_date'] : null;
-	$slug              = isset( $data['slug'] ) ? $data['slug'] : null;
+	$slug              = isset( $data['slug'] ) ? $data['slug'] : null; // set
 	$topic_ids         = isset( $data['topic_ids'] ) ? $data['topic_ids'] : null;
-	$topics            = isset( $data['topics'] ) ? $data['topics'] : null; // same as Topic IDs?
 	$ctas              = isset( $data['ctas'] ) ? $data['ctas'] : null;
 
-	// Create the author if it doesn't exist
+	// Get the matching author ID, or create the author if it doesn't exist
+	$user = get_user_by( 'email', $author_email );
 
-	// Create the post
-	// \WP_CLI::log( 'Title: ' . $title );
+	if ( false === $user ) {
+		$random_password = wp_generate_password( 12, true );
 
-	if ( ! empty( $keywords ) ) {
-		\WP_CLI::log( $title );
-		\WP_CLI::log( print_r( $keywords, true ) );
+		$email_address_parts = explode( '@', $author_email );
+		$username = $parts[0];
+
+		$user_id = wp_insert_user(
+			array(
+				'user_pass'    => $random_password,
+				'user_login'   => sanitize_title( $author_name ),
+				'user_email'   => $author_email,
+				'display_name' => $author_name,
+				'first_name'   => $author_name,
+				'role'         => 'author',
+			)
+		);
+	} else {
+		$user_id = $user->ID;
 	}
 
-	// Scan through the body for CTAs, and replace them with the "full_html" data from the "ctas" object
+	// Map the "topic" IDs to categories, or create the categories if they don't already exist
+	$category_ids = array();
 
-	// Scan through the body for IMG tags, download the images, and replace the src attributes
+	foreach ( $topic_ids as $topic_id ) {
+		$category_ids[] = get_or_create_category_by_topic_id( $topic_id );
+	}
 
+	// TODO Scan through the body for CTAs, and replace them with the "full_html" data from the "ctas" object
+
+	// TODO Scan through the body for IMG tags, download the images, and replace the src attributes
+
+	// Create the post
+	\WP_CLI::log( 'Title: ' . $title );
+
+	$post_id = wp_insert_post(
+		array(
+			'post_author'    => $user_id,
+			'post_date'      => false, // ?
+			'post_content'   => $post_body,
+			'post_title'     => $title,
+			'post_status'    => 'publish',
+			'comment_status' => 'open',
+			'post_name'      => $slug,
+			'post_category'  => $category_ids,
+			'meta_input'     => array(
+				'old_url'               => $old_url,
+				'old_analytics_page_id' => $analytics_page_id,
+				'old_post_id'           => $old_id,
+				'_yoast_wpseo_metadesc' => $meta_description,
+			),
+		)
+	);
+
+	// Create the 301 redirect, if necessary?
 }
 
 /**
@@ -172,7 +278,7 @@ function import_from_api( $offset = 0) {
 		'limit'   => LIMIT,
 		'offset'  => $offset,
 		'state'   => 'PUBLISHED',
-	), BASE_URL );
+	), BLOG_ENDPOINT_URL );
 
 	\WP_CLI::log( 'Starting with page 1: ' . $full_url );
 
@@ -207,7 +313,7 @@ function import_from_api( $offset = 0) {
 			'limit'   => LIMIT,
 			'offset'  => $offset,
 			'state'   => 'PUBLISHED',
-		), BASE_URL );
+		), BLOG_ENDPOINT_URL );
 
 		$response = wp_safe_remote_get( $full_url );
 
@@ -240,7 +346,7 @@ function import_post_from_api( $post_id ) {
 	\WP_CLI::log( 'Importing blog post with ID: ' . $post_id );
 
 	// Get the first page
-	$post_url = trailingslashit( BASE_URL ) . $post_id;
+	$post_url = trailingslashit( BLOG_ENDPOINT_URL ) . $post_id;
 	$full_url = add_query_arg( 'hapikey', HAPI_KEY, $post_url );
 
 	$response = wp_safe_remote_get( $full_url );
