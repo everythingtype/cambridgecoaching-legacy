@@ -29,7 +29,7 @@ define( 'LIMIT',               5 );                                             
  *
  * @return int Image ID, or false if the import failed.
  */
-function download_image_from_url( $url, $post_id, $alt = '', $credit = '' ) {
+function download_image_from_url( $url, $post_id, $alt = '' ) {
 
 	if ( empty( $url ) ) {
 		return false;
@@ -65,39 +65,34 @@ function download_image_from_url( $url, $post_id, $alt = '', $credit = '' ) {
 }
 
 /**
- * Creates the 301 redirect with the provided JSON data.
+ * Scans the HTML content for image tags, downloads any media that's needed,
+ * and replaces the image sources. Returns an updated version of the HTML.
  *
- * Uses Safe Redirect Manager, requires it to be installed.
+ * @param string $html_content HTML content to parse.
+ * @param int    $post_id      Post ID, so that attachments can be connected to the post.
  *
- * @param  Array         $data    Array of the JSON data for the post.
- * @param  int           $post_id Post ID of the new post.
- * @return int|WP_Error           Redirect post ID if successful, or WP_Error if not.
+ * @return string              Updated HTML content.
  */
-function create_301_redirect( $data, $post_id ) {
+function replace_image_srcs( $html_content, $post_id ) {
+	$document = new \DOMDocument();
+	$document->loadHTML( $html_content );
 
-	global $safe_redirect_manager;
+	$tags = $document->getElementsByTagName( 'img' );
 
-	if ( empty( $post_id ) || empty( $old_id ) ) {
-		return false;
+	foreach ( $tags as $tag ) {
+		$image_old_src = $tag->getAttribute( 'src' );
+		$image_alt     = $tag->getAttribute( 'alt' );
+
+		$new_image_id = download_image_from_url( $image_old_src, $post_id, $image_alt );
+
+		if ( ! empty( $new_image_id ) ) {
+			$new_image_url = wp_get_attachment_image_url( $new_image_id, 'full', false );
+		}
+
+		$html_content = str_replace( $image_old_src, $new_image_url, $html_content );
 	}
 
-	// This will look something like:
-	// http://blog.cambridgecoaching.com/orgo-1-strategies-finding-and-comparing-alkene-hydration-products
-	$old_full_url = $data['absolute_url'];
-
-	// TODO parse the old URL to get a relative path
-	$old_relative_url = '';
-
-	// Get the URL of the new post to redirect to
-	$new_url = get_the_permalink( $post_id );
-
-	if ( empty( $new_url ) ) {
-		return false;
-	}
-
-	$redirect_id = $safe_redirect_manager->create_redirect( $old_url, $new_url );
-
-	return $redirect_id;
+	return $html_content;
 }
 
 /**
@@ -163,6 +158,78 @@ function get_or_create_category_by_topic_id( $topic_id ) {
 }
 
 /**
+ * Uses the CTAs that are connected with a post, which contain full HTML for the CTA. Finds
+ * the shortcodes that are in the content to insert a CTA, and replaces the shortcode with
+ * the CTA HTML. Also replaces any links in the CTA - these are set as redirects that go
+ * through Hubspot, so they should be updated to go directly to the actual link.
+ *
+ * @param string $html_content HTML content to parse.
+ * @param int    $post_id      Post ID, so that attachments can be connected to the post.
+ *
+ * @return string              Updated HTML content.
+ */
+function replace_content_ctas( $html_content, $ctas ) {
+
+	// Just return if there aren't any CTAs used
+	if ( empty( $ctas ) ) {
+		return $html_content;
+	}
+
+	foreach ( $ctas as $cta_key => $cta_data ) {
+		// The key is the ID for the CTA itself, and they're inserted into
+		// the post content with this format:
+		// {{cta('6eec0177-16b8-48e6-9a34-e60fb4f052a6')}}
+
+		// The HTML will replace the shortcode
+		$full_html = $cta_data['full_html'];
+
+		// Update the full HTML to get rid of Hubspot's redirects - all the links in the
+		// content will look like this:
+		// https://cta-redirect.hubspot.com/cta/redirect/174241/80cb5e58-6cbe-4a0b-bec4-a3cdd6f96b76
+		$document = new \DOMDocument();
+		$document->loadHTML( $full_html );
+
+		$tags = $document->getElementsByTagName( 'a' );
+
+		foreach ( $tags as $tag ) {
+			$link_old_href = $tag->getAttribute( 'href' );
+
+			// Create a request to follow the URL
+			$response = wp_safe_remote_get( $link_old_href );
+
+			// Skip if there was an error
+			if ( is_wp_error( $response ) ) {
+				continue;
+			}
+
+			// Look through the response for the redirect link, it's in some Javascript, like:
+			// var redirectUrl = "http://www.cambridgecoaching.com/contact";
+			$link_body = $response['body'];
+
+			$matches = array();
+			preg_match( '/redirectUrl = \"(.+)\"/', $link_body, $matches );
+
+			$link_new_href = isset( $matches[1] ) ? $matches[1] : null;
+
+			// And replace it
+			if ( empty( $link_new_href ) ) {
+				continue;
+			}
+
+			$full_html = str_replace( $link_old_href, $link_new_href, $full_html );
+		}
+
+		// Build the shortcode that we're going to search for
+		$cta_shortcode = "{{cta('" . $cta_key . "')}}";
+
+		// And do a search-and-replace
+		$updated_post_content = str_replace( $cta_shortcode, $full_html, $html_content );
+	} // End foreach().
+
+	return $updated_post_content;
+}
+
+/**
  * Creates a post with the provided JSON data.
  *
  * @param  Array         $data  Array of the JSON data for the post.
@@ -171,24 +238,20 @@ function get_or_create_category_by_topic_id( $topic_id ) {
 function create_post( $data ) {
 
 	// Extract the data that we're going to need
-
-	// TODO: do we need analytics page ID? How to look up category IDs?
-	// Are keywords used? How are Topic IDs used (called "Tags" on the blog)?
-
-	$title             = isset( $data['html_title'] ) ? $data['html_title'] : null; // set
-	$old_url           = isset( $data['absolute_url'] ) ? $data['absolute_url'] : null; // set
-	$analytics_page_id = isset( $data['analytics_page_id'] ) ? $data['analytics_page_id'] : null; // maybe? set
-	$author_email      = isset( $data['author_email'] ) ? $data['author_email'] : null; // set
-	$author_name       = isset( $data['author_name'] ) ? $data['author_name'] : null; // set
+	$title             = isset( $data['html_title'] ) ? $data['html_title'] : null;
+	$old_url           = isset( $data['absolute_url'] ) ? $data['absolute_url'] : null;
+	$analytics_page_id = isset( $data['analytics_page_id'] ) ? $data['analytics_page_id'] : null;
+	$author_email      = isset( $data['author_email'] ) ? $data['author_email'] : null;
+	$author_name       = isset( $data['author_name'] ) ? $data['author_name'] : null;
 	$blog_author       = isset( $data['blog_author']['display_name'] ) ? $data['blog_author']['display_name'] : null;
 	$category_id       = isset( $data['category_id'] ) ? $data['category_id'] : null;
-	$old_id            = isset( $data['id'] ) ? $data['id'] : null; // set
-	$keywords          = isset( $data['keywords'] ) ? $data['keywords'] : null; // maybe?
+	$old_id            = isset( $data['id'] ) ? $data['id'] : null;
+	$keywords          = isset( $data['keywords'] ) ? $data['keywords'] : null;
 	$meta_description  = isset( $data['meta_description'] ) ? $data['meta_description'] : null;
-	$post_body         = isset( $data['post_body'] ) ? $data['post_body'] : null; // set
+	$post_body         = isset( $data['post_body'] ) ? $data['post_body'] : null;
 	$publish_date      = isset( $data['publish_date'] ) ? $data['publish_date'] : null;
-	$slug              = isset( $data['slug'] ) ? $data['slug'] : null; // set
-	$topic_ids         = isset( $data['topic_ids'] ) ? $data['topic_ids'] : null; // set
+	$slug              = isset( $data['slug'] ) ? $data['slug'] : null;
+	$topic_ids         = isset( $data['topic_ids'] ) ? $data['topic_ids'] : null;
 	$ctas              = isset( $data['ctas'] ) ? $data['ctas'] : null;
 
 	// Get the matching author ID, or create the author if it doesn't exist
@@ -196,9 +259,6 @@ function create_post( $data ) {
 
 	if ( false === $user ) {
 		$random_password = wp_generate_password( 12, true );
-
-		$email_address_parts = explode( '@', $author_email );
-		$username = $parts[0];
 
 		$user_id = wp_insert_user(
 			array(
@@ -221,10 +281,8 @@ function create_post( $data ) {
 		$category_ids[] = get_or_create_category_by_topic_id( $topic_id );
 	}
 
-	// TODO Scan through the body for CTAs, and replace them with the "full_html" data from the "ctas" object
-	$updated_post_content = $post_body;
-
-	// TODO Scan through the body for IMG tags, download the images, and replace the src attributes
+	// Scan through the body for CTAs, and replace them with the "full_html" data from the "ctas" object
+	$updated_post_content = replace_content_ctas( $post_body, $ctas );
 
 	// Create the post
 	\WP_CLI::log( 'Title: ' . $title . ' by ' . $author_email );
@@ -253,11 +311,26 @@ function create_post( $data ) {
 		), true
 	);
 
+	// Alert if there's an error and then don't continue this post
 	if ( is_wp_error( $post_id ) ) {
+		\WP_CLI::warning( 'There was an error creating the post:' );
 		\WP_CLI::warning( $post_id->get_error_message() );
+		return;
 	}
 
-	// Create the 301 redirect, if necessary?
+	// Scan through the body for IMG tags, download the images, and replace the src attributes
+	$updated_post_content = replace_image_srcs( $updated_post_content, $post_id );
+
+	$updated_post_id = wp_update_post( array(
+		'ID'           => $post_id,
+		'post_content' => $updated_post_content,
+	) );
+
+	if ( is_wp_error( $updated_post_id ) || empty( $updated_post_id ) ) {
+		\WP_CLI::warning( 'There was an error updating the post content:' );
+		\WP_CLI::warning( $updated_post_id->get_error_message() );
+		return;
+	}
 }
 
 /**
@@ -279,8 +352,6 @@ function create_posts( $posts ) {
  * @param int $offset Offset of number of posts to start with.
  */
 function import_from_api( $offset = 0) {
-
-	\WP_CLI::log( 'Offset: ' . $offset );
 
 	// Get the first page
 	$full_url = add_query_arg( array(
