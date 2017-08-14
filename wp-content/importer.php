@@ -51,7 +51,7 @@ function download_image_from_url( $url, $post_id, $alt = '' ) {
 
 	if ( is_wp_error( $id ) ) {
 		\WP_CLI::warning( 'Error downloading the image from this URL: ' . $url );
-		\WP_CLI::warning( $response->get_error_message() );
+		\WP_CLI::warning( $id->get_error_message() );
 		@unlink( $file_array['tmp_name'] );
 		return false;
 	}
