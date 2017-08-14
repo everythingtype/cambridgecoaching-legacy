@@ -43,18 +43,20 @@ function download_image_from_url( $url, $post_id, $alt = '' ) {
 	);
 
 	if ( is_wp_error( $tmp ) ) {
-		unlink( $file_array['tmp_name'] );
+		@unlink( $file_array['tmp_name'] );
 		return false;
 	}
 
 	$id = media_handle_sideload( $file_array, $post_id );
 
 	if ( is_wp_error( $id ) ) {
-		unlink( $file_array['tmp_name'] );
+		\WP_CLI::warning( 'Error downloading the image from this URL: ' . $url );
+		\WP_CLI::warning( $response->get_error_message() );
+		@unlink( $file_array['tmp_name'] );
 		return false;
 	}
 
-	unlink( $tmp );
+	@unlink( $tmp );
 
 	// Set the alt text if set
 	if ( ! empty( $alt ) ) {
@@ -74,6 +76,7 @@ function download_image_from_url( $url, $post_id, $alt = '' ) {
  * @return string              Updated HTML content.
  */
 function replace_image_srcs( $html_content, $post_id ) {
+	libxml_use_internal_errors( true );
 	$document = new \DOMDocument();
 	$document->loadHTML( $html_content );
 
@@ -87,9 +90,8 @@ function replace_image_srcs( $html_content, $post_id ) {
 
 		if ( ! empty( $new_image_id ) ) {
 			$new_image_url = wp_get_attachment_image_url( $new_image_id, 'full', false );
+			$html_content = str_replace( $image_old_src, $new_image_url, $html_content );
 		}
-
-		$html_content = str_replace( $image_old_src, $new_image_url, $html_content );
 	}
 
 	return $html_content;
@@ -180,12 +182,24 @@ function replace_content_ctas( $html_content, $ctas ) {
 		// the post content with this format:
 		// {{cta('6eec0177-16b8-48e6-9a34-e60fb4f052a6')}}
 
-		// The HTML will replace the shortcode
-		$full_html = $cta_data['full_html'];
+		// The HTML will replace the shortcode. First checks for the "full_html" data, but
+		// this might occasionally be unset
+		if ( ! $cta_data['full_html'] ) {
+			$full_html = $cta_data['full_html'];
+		} elseif ( ! $cta_data['image_html'] ) {
+			$full_html = $cta_data['image_html'];
+		}
+
+		// Continue if we don't have any data
+		if ( empty( $full_html ) ) {
+			continue;
+		}
 
 		// Update the full HTML to get rid of Hubspot's redirects - all the links in the
 		// content will look like this:
 		// https://cta-redirect.hubspot.com/cta/redirect/174241/80cb5e58-6cbe-4a0b-bec4-a3cdd6f96b76
+		libxml_use_internal_errors( true );
+
 		$document = new \DOMDocument();
 		$document->loadHTML( $full_html );
 
@@ -216,11 +230,36 @@ function replace_content_ctas( $html_content, $ctas ) {
 				continue;
 			}
 
-			$full_html = str_replace( $link_old_href, $link_new_href, $full_html );
+			$tag->setAttribute( 'href', $link_new_href );
+		}
+
+		// Strip out any <script> tags. We need to look through the DOM elements for this,
+		// wp_kses won't work because we want to remove any inline JS inside the tags, not just
+		// the tags themselves.
+		$script_tags = $document->getElementsByTagName( 'script' );
+		$script_tags_to_remove = array();
+
+		// Weird thing with iterating over DOMElements - we have to create this array of items
+		// to remove first
+		foreach ( $script_tags as $tag ) {
+			$script_tags_to_remove[] = $tag;
+		}
+
+		foreach ( $script_tags_to_remove as $tag ) {
+			// @codingStandardsIgnoreStart
+			$tag->parentNode->removeChild( $tag );
+			// @codingStandardsIgnoreEnd
 		}
 
 		// Build the shortcode that we're going to search for
 		$cta_shortcode = "{{cta('" . $cta_key . "')}}";
+
+		// Get our modified version of the HTML to swap it out with
+		$full_html = $document->saveHTML();
+
+		// One more pass to sanitize the HTML, also gets rid of the <DOCTYPE> and
+		// <html> tags that are added by DOMDocument
+		$full_html = wp_kses_post( $full_html );
 
 		// And do a search-and-replace
 		$updated_post_content = str_replace( $cta_shortcode, $full_html, $html_content );
