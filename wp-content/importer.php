@@ -262,10 +262,10 @@ function replace_content_ctas( $html_content, $ctas ) {
 		$full_html = wp_kses_post( $full_html );
 
 		// And do a search-and-replace
-		$updated_post_content = str_replace( $cta_shortcode, $full_html, $html_content );
+		$html_content = str_replace( $cta_shortcode, $full_html, $html_content );
 	} // End foreach().
 
-	return $updated_post_content;
+	return $html_content;
 }
 
 /**
@@ -277,21 +277,23 @@ function replace_content_ctas( $html_content, $ctas ) {
 function create_post( $data ) {
 
 	// Extract the data that we're going to need
-	$title             = isset( $data['html_title'] ) ? $data['html_title'] : null;
-	$old_url           = isset( $data['absolute_url'] ) ? $data['absolute_url'] : null;
-	$analytics_page_id = isset( $data['analytics_page_id'] ) ? $data['analytics_page_id'] : null;
-	$author_email      = isset( $data['author_email'] ) ? $data['author_email'] : null;
-	$author_name       = isset( $data['author_name'] ) ? $data['author_name'] : null;
-	$blog_author       = isset( $data['blog_author']['display_name'] ) ? $data['blog_author']['display_name'] : null;
-	$category_id       = isset( $data['category_id'] ) ? $data['category_id'] : null;
-	$old_id            = isset( $data['id'] ) ? $data['id'] : null;
-	$keywords          = isset( $data['keywords'] ) ? $data['keywords'] : null;
-	$meta_description  = isset( $data['meta_description'] ) ? $data['meta_description'] : null;
-	$post_body         = isset( $data['post_body'] ) ? $data['post_body'] : null;
-	$publish_date      = isset( $data['publish_date'] ) ? $data['publish_date'] : null;
-	$slug              = isset( $data['slug'] ) ? $data['slug'] : null;
-	$topic_ids         = isset( $data['topic_ids'] ) ? $data['topic_ids'] : null;
-	$ctas              = isset( $data['ctas'] ) ? $data['ctas'] : null;
+	$title                   = isset( $data['html_title'] ) ? $data['html_title'] : null;
+	$old_url                 = isset( $data['absolute_url'] ) ? $data['absolute_url'] : null;
+	$analytics_page_id       = isset( $data['analytics_page_id'] ) ? $data['analytics_page_id'] : null;
+	$author_email            = isset( $data['author_email'] ) ? $data['author_email'] : null;
+	$author_name             = isset( $data['author_name'] ) ? $data['author_name'] : null;
+	$blog_author             = isset( $data['blog_author']['display_name'] ) ? $data['blog_author']['display_name'] : null;
+	$category_id             = isset( $data['category_id'] ) ? $data['category_id'] : null;
+	$old_id                  = isset( $data['id'] ) ? $data['id'] : null;
+	$keywords                = isset( $data['keywords'] ) ? $data['keywords'] : null;
+	$meta_description        = isset( $data['meta_description'] ) ? $data['meta_description'] : null;
+	$post_body               = isset( $data['post_body'] ) ? $data['post_body'] : null;
+	$publish_date            = isset( $data['publish_date'] ) ? $data['publish_date'] : null;
+	$slug                    = isset( $data['slug'] ) ? $data['slug'] : null;
+	$topic_ids               = isset( $data['topic_ids'] ) ? $data['topic_ids'] : null;
+	$ctas                    = isset( $data['ctas'] ) ? $data['ctas'] : null;
+	$featured_image          = isset( $data['featured_image'] ) ? $data['featured_image'] : null;
+	$featured_image_alt_text = isset( $data['featured_image_alt_text'] ) ? $data['featured_image_alt_text'] : null;
 
 	// Get the matching author ID, or create the author if it doesn't exist
 	$user = get_user_by( 'email', $author_email );
@@ -369,6 +371,13 @@ function create_post( $data ) {
 		\WP_CLI::warning( 'There was an error updating the post content:' );
 		\WP_CLI::warning( $updated_post_id->get_error_message() );
 		return;
+	}
+
+	// Set the post's featured image
+	$featured_image_id = download_image_from_url( $featured_image, $post_id, $featured_image_alt_text );
+
+	if ( ! empty( $featured_image_id ) ) {
+		set_post_thumbnail( $post_id, $featured_image_id );
 	}
 }
 
