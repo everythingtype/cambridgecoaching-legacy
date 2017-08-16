@@ -122,10 +122,10 @@ function get_or_create_category_by_topic_id( $topic_id ) {
 		$data = json_decode( $response['body'], true );
 
 		if ( ! empty( $data ) ) {
-			$description = $data['description'];
-			$name        = $data['name'];
-			$slug        = $data['slug'];
-			$old_id      = $data['id'];
+			$description = ! empty( $data['description'] ) ? $data['description'] : '';
+			$name        = ! empty( $data['name'] ) ? $data['name'] : null;
+			$slug        = ! empty( $data['slug'] ) ? $data['slug'] : null;
+			$old_id      = ! empty( $data['id'] ) ? $data['id'] : '';
 
 			$category = get_category_by_slug( $slug );
 
@@ -184,14 +184,16 @@ function replace_content_ctas( $html_content, $ctas ) {
 
 		// The HTML will replace the shortcode. First checks for the "full_html" data, but
 		// this might occasionally be unset
-		if ( ! $cta_data['full_html'] ) {
+		if ( ! empty( $cta_data['full_html'] ) ) {
 			$full_html = $cta_data['full_html'];
-		} elseif ( ! $cta_data['image_html'] ) {
+		} elseif ( ! empty( $cta_data['image_html'] ) ) {
 			$full_html = $cta_data['image_html'];
 		}
 
 		// Continue if we don't have any data
 		if ( empty( $full_html ) ) {
+			\WP_CLI::warning( 'Full HTML doesn\'t exist for this CTA: ' . $cta_key );
+			\WP_CLI::warning( print_r( $cta_data, true ) );
 			continue;
 		}
 
@@ -282,7 +284,6 @@ function create_post( $data ) {
 	$analytics_page_id       = isset( $data['analytics_page_id'] ) ? $data['analytics_page_id'] : null;
 	$author_email            = isset( $data['author_email'] ) ? $data['author_email'] : null;
 	$author_name             = isset( $data['author_name'] ) ? $data['author_name'] : null;
-	$blog_author             = isset( $data['blog_author']['display_name'] ) ? $data['blog_author']['display_name'] : null;
 	$category_id             = isset( $data['category_id'] ) ? $data['category_id'] : null;
 	$old_id                  = isset( $data['id'] ) ? $data['id'] : null;
 	$keywords                = isset( $data['keywords'] ) ? $data['keywords'] : null;
@@ -294,6 +295,16 @@ function create_post( $data ) {
 	$ctas                    = isset( $data['ctas'] ) ? $data['ctas'] : null;
 	$featured_image          = isset( $data['featured_image'] ) ? $data['featured_image'] : null;
 	$featured_image_alt_text = isset( $data['featured_image_alt_text'] ) ? $data['featured_image_alt_text'] : null;
+
+	// The author name may not be set, if that's the case, use the other place
+	// where the name and email are set
+	if ( empty( $author_email ) ) {
+		$author_email = isset( $data['blog_author']['email'] ) ? $data['blog_author']['email'] : null;
+	}
+
+	if ( empty( $author_name ) ) {
+		$author_name = isset( $data['blog_author']['display_name'] ) ? $data['blog_author']['display_name'] : null;
+	}
 
 	// Get the matching author ID, or create the author if it doesn't exist
 	$user = get_user_by( 'email', $author_email );
@@ -333,24 +344,27 @@ function create_post( $data ) {
 	$publish_date = $publish_date - (60 * 60 * 4); // subtract 4 hours
 	$publish_date = date( 'Y-m-d H:i:s', $publish_date );
 
-	$post_id = wp_insert_post(
-		array(
-			'post_author'    => $user_id,
-			'post_date'      => $publish_date,
-			'post_content'   => $updated_post_content,
-			'post_title'     => $title,
-			'post_status'    => 'publish',
-			'comment_status' => 'open',
-			'post_name'      => $slug,
-			'post_category'  => $category_ids,
-			'meta_input'     => array(
-				'old_url'               => $old_url,
-				'old_analytics_page_id' => $analytics_page_id,
-				'old_post_id'           => $old_id,
-				'_yoast_wpseo_metadesc' => $meta_description,
-			),
-		), true
+	$post_data = array(
+		'post_author'    => $user_id,
+		'post_date'      => $publish_date,
+		'post_content'   => $updated_post_content,
+		'post_title'     => $title,
+		'post_status'    => 'publish',
+		'comment_status' => 'open',
+		'post_name'      => $slug,
+		'post_category'  => $category_ids,
+		'meta_input'     => array(
+			'old_url'               => $old_url,
+			'old_analytics_page_id' => $analytics_page_id,
+			'old_post_id'           => $old_id,
+			'_yoast_wpseo_metadesc' => $meta_description,
+		),
 	);
+
+	// Testing
+	error_log( $title . ' ' . $old_id );
+
+	$post_id = wp_insert_post( $post_data, true );
 
 	// Alert if there's an error and then don't continue this post
 	if ( is_wp_error( $post_id ) ) {
