@@ -20,7 +20,6 @@
     "grunt-postcss": "^0.8.0",
     "grunt-sass": "^2.0.0",
     "grunt-svgstore": "^1.0.0",
-    "grunt-webpack": "^2.0.1",
     "load-grunt-tasks": "^3.5.2",
     "matchdep": "^1.0.1",
     "postcss-svg-fragments": "^2.2.0"
