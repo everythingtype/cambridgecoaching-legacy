@@ -18,6 +18,10 @@ wp-content/cache/*
 wp-content/cache/supercache/*
 wp-content/debug.log
 
+# npm
+wp-content/themes/cambridgecoaching/package-lock.json
+wp-content/themes/cambridgecoaching/node_modules
+
 # wpengine specific
 .smushit-status
 .gitattributes
